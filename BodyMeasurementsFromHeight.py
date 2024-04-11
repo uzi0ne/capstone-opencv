@@ -1,5 +1,3 @@
-
-
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -7,12 +5,14 @@ import numpy as np
 # MediaPipe의 Pose 모듈 로드
 mp_pose = mp.solutions.pose
 
-# 이미지의 크기
+# 이미지의 크기 정의
 image_width_px = 550
 image_height_px = 550
 
-# 사용자로부터 키를 입력 (단위: cm)
+# 사용자로부터 키를 입력받음 (단위: cm)
 height_cm = float(input("키를 입력하세요 (단위: cm): "))
+
+# line 15 ~ 66까지: 신체 치수 측정 코드
 
 # 이미지의 픽셀 당 길이 계산
 px_per_cm = 480 / height_cm
@@ -31,7 +31,7 @@ image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 # 이미지에서 포즈를 분석
 results = pose.process(image_rgb)
 
-# 결과를 확인하고 각 부위의 좌표를 저장합니다.
+# 결과를 확인하고 각 부위의 좌표를 저장
 if results.pose_landmarks is not None:
     landmarks = results.pose_landmarks.landmark
     landmarks_dict = {}
@@ -42,11 +42,11 @@ if results.pose_landmarks is not None:
     def calculate_length(p1, p2):
         return np.linalg.norm(np.array(p1) - np.array(p2)) / px_per_cm
 
-    # 팔의 길이 계산
+    # 팔 길이 계산
     right_arm_length = calculate_length(landmarks_dict[mp_pose.PoseLandmark.RIGHT_SHOULDER.value], landmarks_dict[mp_pose.PoseLandmark.RIGHT_WRIST.value])
     left_arm_length = calculate_length(landmarks_dict[mp_pose.PoseLandmark.LEFT_SHOULDER.value], landmarks_dict[mp_pose.PoseLandmark.LEFT_WRIST.value])
 
-    # 다리의 길이 계산
+    # 다리 길이 계산
     right_leg_length = calculate_length(landmarks_dict[mp_pose.PoseLandmark.RIGHT_HIP.value], landmarks_dict[mp_pose.PoseLandmark.RIGHT_ANKLE.value])
     left_leg_length = calculate_length(landmarks_dict[mp_pose.PoseLandmark.LEFT_HIP.value], landmarks_dict[mp_pose.PoseLandmark.LEFT_ANKLE.value])
 
@@ -67,10 +67,7 @@ if results.pose_landmarks is not None:
             cv2.circle(image_with_landmarks, (int(landmark.x * image.shape[1]), int(landmark.y * image.shape[0])), 5, (255, 0, 0), -1)
 
 
-   
-    
-
-
+    # line 72 ~ 101까지: 허리 측정 코드
 
     # 1-1. 왼쪽 어깨 위치 추정
     left_shoulder = np.array(landmarks_dict[mp_pose.PoseLandmark.LEFT_SHOULDER.value])
@@ -82,29 +79,27 @@ if results.pose_landmarks is not None:
     left_waist_position = (left_shoulder + left_hip) / 2
     left_waist_position_pixel = np.round(left_waist_position).astype(int)
 
-
-
-    # 결과 표시: 왼쪽 허리 위치에 점 그리기 (빨간색)
+    # 1-4. 결과 표시: 왼쪽 허리 위치에 점 그리기
     cv2.circle(image_with_landmarks, tuple(left_waist_position_pixel), 5, (0, 0, 255), -1)
 
-    # 오른쪽 어깨 위치 추정
+    # 2-1. 오른쪽 어깨 위치 추정
     right_shoulder = np.array(landmarks_dict[mp_pose.PoseLandmark.RIGHT_SHOULDER.value])
 
-    # 오른쪽 엉덩이 위치 추정
+    # 2-2. 오른쪽 엉덩이 위치 추정
     right_hip = np.array(landmarks_dict[mp_pose.PoseLandmark.RIGHT_HIP.value])
 
-    # 오른쪽 어깨와 오른쪽 엉덩이 사이의 중간점 계산
+    # 2-3. 오른쪽 어깨와 오른쪽 엉덩이 사이의 중간점 계산
     right_waist_position = (right_shoulder + right_hip) / 2
     right_waist_position_pixel = np.round(right_waist_position).astype(int)
 
-    # 결과 표시: 오른쪽 허리 위치에 점 그리기 (빨간색)
+    # 2-4. 결과 표시: 오른쪽 허리 위치에 점 그리기
     cv2.circle(image_with_landmarks, tuple(right_waist_position_pixel), 5, (0, 0, 255), -1)
 
     # 허리 위치를 선으로 연결
     cv2.line(image_with_landmarks, tuple(left_waist_position_pixel), tuple(right_waist_position_pixel), (0, 0, 255), 2)
 
 
-    # 길이 표시
+    # 신체 치수와 허리둘레 이미지 화면에 출력
     font = cv2.FONT_HERSHEY_SIMPLEX
     font_scale = 0.4
     font_color = (0, 0, 0)  # 검정색
