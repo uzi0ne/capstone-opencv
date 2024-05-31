@@ -2,6 +2,7 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import json
+import sys
 
 # MediaPipe 초기화
 mp_pose = mp.solutions.pose
@@ -9,11 +10,11 @@ pose = mp_pose.Pose(static_image_mode=True)
 mp_drawing = mp.solutions.drawing_utils
 
 def calculate_distance(p1, p2):
-    """두 점 사이의 유클리디언 거리를 계산합니다."""
+    """두 점 사이의 유클리디언 거리를 계산"""
     return np.sqrt((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2)
 
 def estimate_body_measurements(image, user_height_cm):
-    """이미지를 기반으로 신체 치수를 추정합니다."""
+    """이미지를 기반으로 신체 치수 추정"""
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     results = pose.process(image_rgb)
 
@@ -40,6 +41,10 @@ def estimate_body_measurements(image, user_height_cm):
         ankle_left = [landmarks[mp_pose.PoseLandmark.LEFT_ANKLE].x, landmarks[mp_pose.PoseLandmark.LEFT_ANKLE].y]
         leg_length_pixels = calculate_distance(hip_left, ankle_left)
 
+        top_length_left = calculate_top_length(left_shoulder[0], left_shoulder[1], left_hip[0], left_hip[1])
+        top_length_right = calculate_top_length(right_shoulder[0], right_shoulder[1], right_hip[0], right_hip[1])
+        average_top_length = (top_length_left + top_length_right) / 2
+
         # 픽셀 단위의 치수를 사용자의 키를 기반으로 실제 치수로 변환
         heel_left = [landmarks[mp_pose.PoseLandmark.LEFT_HEEL].x, landmarks[mp_pose.PoseLandmark.LEFT_HEEL].y]
         height_in_pixels = calculate_distance([landmarks[mp_pose.PoseLandmark.NOSE].x, landmarks[mp_pose.PoseLandmark.NOSE].y], heel_left)
@@ -53,9 +58,11 @@ def estimate_body_measurements(image, user_height_cm):
         # JSON 데이터 생성
         body_measurements = {
             "shoulderWidth": shoulder_width_cm,
-            "waistCircumference": waist_circumference_cm,
-            "armLength": arm_length_cm,
-            "legLength": leg_length_cm
+            "waistWidth": waist_circumference_cm,
+            "sleeveLength": arm_length_cm,
+            "bottomLength": leg_length_cm,
+            "topLength": average_top_length
+            # "chestCrossSection": 추가 예정
         }
 
         return body_measurements
