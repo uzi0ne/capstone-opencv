@@ -6,8 +6,8 @@ import numpy as np
 mp_pose = mp.solutions.pose
 
 # 이미지의 크기 정의
-image_width_px = 550
-image_height_px = 550
+image_width_px = 341
+image_height_px = 512
 
 # 사용자로부터 키를 입력받음 (단위: cm)
 height_cm = float(input("키를 입력하세요 (단위: cm): "))
@@ -18,8 +18,8 @@ height_cm = float(input("키를 입력하세요 (단위: cm): "))
 px_per_cm = 480 / height_cm
 
 # 이미지 로드
-image_path = (r'C:/image/Model.png')
-image = cv2.imread(r'C:/image/Model.png')
+image_path = (r'C:/image/women1.jpg')
+image = cv2.imread(r'C:/image/women1.jpg')
 image_with_landmarks = image.copy()
 
 # MediaPipe Pose를 이용하여 인스턴스 생성
@@ -27,6 +27,7 @@ pose = mp_pose.Pose(static_image_mode=True, min_detection_confidence=0.5, min_tr
 
 # 이미지를 RGB로 변환
 image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
 
 # 이미지에서 포즈를 분석
 results = pose.process(image_rgb)
@@ -80,7 +81,7 @@ left_waist_position = (left_shoulder + left_hip) / 2
 left_waist_position_pixel = np.round(left_waist_position).astype(int)
 
 # 1-4. 결과 표시: 왼쪽 허리 위치에 점 그리기
-cv2.circle(image_with_landmarks, tuple(left_waist_position_pixel), 5, (0, 0, 255), -1)
+cv2.circle(image_with_landmarks, tuple(left_waist_position_pixel), 5, (0, 0, 255), 1)
 
 # 2-1. 오른쪽 어깨 위치 추정
 right_shoulder = np.array(landmarks_dict[mp_pose.PoseLandmark.RIGHT_SHOULDER.value])
@@ -93,7 +94,7 @@ right_waist_position = (right_shoulder + right_hip) / 2
 right_waist_position_pixel = np.round(right_waist_position).astype(int)
 
 # 2-4. 결과 표시: 오른쪽 허리 위치에 점 그리기
-cv2.circle(image_with_landmarks, tuple(right_waist_position_pixel), 5, (0, 0, 255), -1)
+cv2.circle(image_with_landmarks, tuple(right_waist_position_pixel), 5, (0, 0, 255), 1)
 
 # 허리 위치를 선으로 연결
 cv2.line(image_with_landmarks, tuple(left_waist_position_pixel), tuple(right_waist_position_pixel), (0, 0, 255), 2)
